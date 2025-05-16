@@ -13,4 +13,5 @@ galaxy_info:
     - linux
 
 dependencies: []
+allow_duplicates: true
 
