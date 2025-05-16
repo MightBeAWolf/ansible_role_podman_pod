@@ -37,11 +37,47 @@
   register: podman_pod_container_systemd_unit_file
   become: true
 
+- name: container | "Create the container's systemd timer file | {{ podman_pod_container.name }}"
+  ansible.builtin.template:
+    src: podman.timer.j2
+    dest: "/etc/systemd/system/{{ podman_pod_container.name }}_podman.timer"
+    owner: root
+    group: root
+    mode: '0644'
+  when: "'timer' in podman_pod_container"
+  register: podman_pod_container_systemd_timer_file
+  become: true
+
 - name: container | Reload the Systemd Daemons
   ansible.builtin.systemd_service:
-    name: "{{ podman_pod_container.name }}_podman.service"
-    state: restarted
-    enabled: true
     daemon_reload: true
   become: true
-  when: podman_pod_container_systemd_unit_file.changed or (container_image is defined and container_image.changed)
+  when:
+    - podman_pod_container_systemd_unit_file.changed or podman_pod_container_systemd_timer_file.changed or (container_image is defined and container_image.changed)
+
+- name: container | Restart the container if there is no timer
+  when:
+    - "'timer' not in podman_pod_container"
+  block:
+    - name: container | Set the container to start at boot
+      ansible.builtin.systemd_service:
+        name: "{{ podman_pod_container.name }}_podman.service"
+        enabled: "{{ podman_pod_container.start_on_boot | default(true) }}"
+      become: true
+
+    - name: container | Restart the container
+      ansible.builtin.systemd_service:
+        name: "{{ podman_pod_container.name }}_podman.service"
+        enabled: "{{ podman_pod_container.start_on_boot | default(true) }}"
+        daemon_reload: true
+      become: true
+      when: podman_pod_container_systemd_unit_file.changed or (container_image is defined and container_image.changed)
+
+- name: container | Set the timer to start at boot
+  ansible.builtin.systemd_service:
+    name: "{{ podman_pod_container.name }}_podman.timer"
+    state: restarted
+    enabled: "{{ podman_pod_container.start_on_boot | default(true) }}"
+  become: true
+  when:
+    - "'timer' in podman_pod_container"

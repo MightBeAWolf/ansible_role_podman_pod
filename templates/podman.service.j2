@@ -1,6 +1,7 @@
 [Unit]
-
 Description=The Systemd unit file for the {{ podman_pod_container.name }} container
+StartLimitIntervalSec={{ podman_pod_containter.limit_start_period | default('300') }}
+StartLimitBurst={{ podman_pod_containter.limit_start_attempts | default('1') }}
 
 {% if 'systemd' in podman_pod_container %}
 Wants=network-online.target {{ podman_pod_container.systemd.wants | default([]) | join(' ') }}
@@ -16,9 +17,16 @@ RequiresMountsFor=%t/containers
 
 [Service]
 Environment=PODMAN_SYSTEMD_UNIT=%n
-Restart=on-failure
-TimeoutStopSec=70
-TimeoutStartSec=1800
+{% if 'timer' in podman_pod_container  %}
+Type=oneshot
+{% else %}
+Type=notify
+NotifyAccess=all
+{% endif %}
+Restart={{ podman_pod_container.restart_when | default('on-failure') }}
+RestartSec={{ podman_pod_containter.wait_to_restart | default('60') }}
+TimeoutStopSec={{ podman_pod_containter.stop_timeout | default('70') }}
+TimeoutStartSec={{ podman_pod_containter.start_timeout | default('300') }}
 ExecStartPre=/bin/rm \
   -f %t/%n.ctr-id
 ExecStart=/usr/bin/podman run \
@@ -26,7 +34,9 @@ ExecStart=/usr/bin/podman run \
   --cgroups=no-conmon \
   --rm \
   --sdnotify=conmon \
+{% if 'timer' not in podman_pod_container  %}
   -d \
+{% endif %}
   --replace \
   --name={{ podman_pod_container.name }} \
   --pod={{ podman_pod_spec.name }} \
@@ -60,8 +70,6 @@ ExecStopPost=/usr/bin/podman rm \
   -f \
   --ignore -t 10 \
   --cidfile=%t/%n.ctr-id
-Type=notify
-NotifyAccess=all
 
 [Install]
 WantedBy=default.target

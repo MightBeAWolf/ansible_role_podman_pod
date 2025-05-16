@@ -1,0 +1,21 @@
+[Unit]
+Description=The Systemd timer file for the {{ podman_pod_container.name }} container
+
+[Timer]
+# Timer can be a dictionary (advanced) or string (simple OnCalendar expression)
+{% if podman_pod_container.timer is string %}
+OnCalendar={{ podman_pod_container.timer }}
+{% elif podman_pod_container.timer is mapping %}
+{% for key, value in podman_pod_container.timer.items() %}
+{{ key }}={{ value }}
+{% endfor %}
+{% else %}
+# Default fallback if timer format is unrecognized
+OnCalendar=daily
+{% endif %}
+Persistent=true
+
+[Install]
+WantedBy=timers.target
+
+
