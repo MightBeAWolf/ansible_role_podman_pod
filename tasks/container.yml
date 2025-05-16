@@ -76,7 +76,7 @@
 - name: container | Set the timer to start at boot
   ansible.builtin.systemd_service:
     name: "{{ podman_pod_container.name }}_podman.timer"
-    state: restarted
+    state: started
     enabled: "{{ podman_pod_container.start_on_boot | default(true) }}"
   become: true
   when:
