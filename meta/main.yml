@@ -1,0 +1,16 @@
+---
+galaxy_info:
+  role_name: podman_pod
+  author: Thomas G Wolf
+  description: Used as a base to deploy podman pods
+  license: MIT
+  min_ansible_version: "2.14"
+
+  galaxy_tags:
+    - podman
+    - pod
+    - container
+    - linux
+
+dependencies: []
+
