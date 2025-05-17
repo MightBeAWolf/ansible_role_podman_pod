@@ -1,15 +1,15 @@
 ---
 - name: container | "Create the container user's group | {{ podman_pod_container.name }}"
   ansible.builtin.user:
-    name: "{{ podman_pod_container.name }}"
+    name: "{{ podman_pod_container.user | default(podman_pod_container.name) }}"
     system: true
     state: present
   become: true
 
 - name: container | "Create the container user | {{ podman_pod_container.name }}"
   ansible.builtin.user:
-    name: "{{ podman_pod_container.name }}"
-    group: "{{ podman_pod_container.name }}"
+    name: "{{ podman_pod_container.user | default(podman_pod_container.name) }}"
+    group: "{{ podman_pod_container.user | default(podman_pod_container.name) }}"
     system: true
     state: present
     password_lock: true
