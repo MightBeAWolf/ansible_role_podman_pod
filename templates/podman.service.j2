@@ -24,9 +24,9 @@ Type=notify
 NotifyAccess=all
 {% endif %}
 Restart={{ podman_pod_container.restart_when | default('on-failure') }}
-RestartSec={{ podman_pod_containter.wait_to_restart | default('60') }}
-TimeoutStopSec={{ podman_pod_containter.stop_timeout | default('70') }}
-TimeoutStartSec={{ podman_pod_containter.start_timeout | default('300') }}
+RestartSec={{ podman_pod_containter.wait_to_restart | default('2min') }}
+TimeoutStopSec={{ podman_pod_containter.stop_timeout | default('120') }}
+TimeoutStartSec={{ podman_pod_containter.start_timeout | default('600') }}
 ExecStartPre=/bin/rm \
   -f %t/%n.ctr-id
 ExecStart=/usr/bin/podman run \
