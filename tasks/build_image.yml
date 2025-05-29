@@ -35,5 +35,4 @@
           file: "{{ podman_pod_image_spec.name }}.containerfile"
         force: true
       become: true
-      when: container_file.changed or other_container_files.changed
       register: container_image
